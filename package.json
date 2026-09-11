@@ -1,0 +1,14 @@
+{
+  "name": "sweet-nails-by-lia",
+  "version": "1.0.0",
+  "description": "Landing page for Sweet Nails by Lia",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
