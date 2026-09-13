@@ -245,7 +245,7 @@
             background: rgba(255,255,255,0.1); border: none;
             color: #fff; font-size: 1.5rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: var(--transition);
+            transition: var(--transition); z-index: 1;
         }
         .lightbox-nav:hover { background: rgba(255,255,255,0.2); }
         .lightbox-prev { left: 2rem; }
@@ -363,9 +363,12 @@
   section { padding: 5rem 1.5rem; }
             .gallery-grid { grid-template-columns: 1fr; }
             .contact-info { flex-direction: column; align-items: center; }
-            .lightbox-nav { width: 44px; height: 44px; }
-            .lightbox-prev { left: 1rem; } .lightbox-next { right: 1rem; }
+            .lightbox { padding: 1rem; touch-action: pan-y; }
+            .lightbox img { max-width: calc(100vw - 2rem); max-height: 78vh; }
+            .lightbox-nav { width: 44px; height: 44px; background: rgba(255,255,255,0.18); }
+            .lightbox-prev { left: 0.75rem; } .lightbox-next { right: 0.75rem; }
             .lightbox-close { top: 1rem; right: 1rem; width: 44px; height: 44px; }
+            .lightbox-counter { bottom: 1rem; }
             .whatsapp-btn { width: 56px; height: 56px; }
         }
         /* Intersection Observer animations */
@@ -665,8 +668,28 @@
             }, 150);
         }
 
+        const lightbox = document.getElementById('lightbox');
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        lightbox.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        lightbox.addEventListener('touchend', (e) => {
+            if (!touchStartX || e.changedTouches.length !== 1) return;
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+            const deltaY = e.changedTouches[0].clientY - touchStartY;
+            touchStartX = 0;
+            touchStartY = 0;
+            if (Math.abs(deltaX) < 45 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+            navigateLightbox(deltaX < 0 ? 1 : -1);
+        }, { passive: true });
+
         // Close on background click
-        document.getElementById('lightbox').addEventListener('click', (e) => {
+        lightbox.addEventListener('click', (e) => {
             if (e.target === e.currentTarget) closeLightbox();
         });
 
