@@ -72,8 +72,22 @@
             gap: 6px;
         }
         .navbar .logo span { color: var(--accent); }
-        .nav-links { display: flex; gap: 2.5rem; }
-        .nav-links a {
+  .nav-links { display: flex; gap: 2.5rem; }
+  .menu-toggle {
+  display: none;
+  width: 44px; height: 44px;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 5px;
+  background: transparent; border: 1px solid var(--border-color);
+  border-radius: 12px; color: var(--text-primary); cursor: pointer;
+  transition: var(--transition);
+  }
+  .menu-toggle:hover, .menu-toggle:focus-visible { border-color: var(--accent); color: var(--accent); }
+  .menu-toggle span { width: 20px; height: 2px; background: currentColor; border-radius: 999px; transition: var(--transition); }
+  .navbar.menu-open .menu-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .navbar.menu-open .menu-toggle span:nth-child(2) { opacity: 0; }
+  .navbar.menu-open .menu-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .nav-links a {
             font-weight: 500; font-size: 0.95rem;
             color: var(--text-secondary);
             position: relative; padding-bottom: 4px;
@@ -332,9 +346,21 @@
             .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
             .gallery-item:nth-child(3n+1) { grid-row: span 1; }
         }
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            section { padding: 5rem 1.5rem; }
+  @media (max-width: 768px) {
+  .navbar { padding: 0.85rem 1.5rem; }
+  .menu-toggle { display: flex; }
+  .nav-links {
+  display: flex; position: absolute; top: calc(100% + 1px); left: 0; right: 0;
+  flex-direction: column; gap: 0; padding: 0.75rem 1.5rem 1rem;
+  background: var(--navbar-bg); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color); box-shadow: var(--shadow-md);
+  opacity: 0; visibility: hidden; transform: translateY(-8px); pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  }
+  .navbar.menu-open .nav-links { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+  .nav-links a { display: block; padding: 0.7rem 0; }
+  .nav-links a::after { bottom: 0.35rem; }
+  section { padding: 5rem 1.5rem; }
             .gallery-grid { grid-template-columns: 1fr; }
             .contact-info { flex-direction: column; align-items: center; }
             .lightbox-nav { width: 44px; height: 44px; }
@@ -358,8 +384,11 @@
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
         <div class="logo">Sweet Nails <span>by Lia</span><img src="./favicon/favicon-192x192.png" alt="" style="width:28px;height:28px;vertical-align:middle;"></div>
-        <ul class="nav-links">
-            <li><a href="#home">Inicio</a></li>
+  <button class="menu-toggle" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="primary-navigation">
+  <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="primary-navigation">
+  <li><a href="#home">Inicio</a></li>
             <li><a href="#info">Información del Negocio</a></li>
             <li><a href="#about">Sobre Mi</a></li>
             <li><a href="#gallery">Galería de Arte</a></li>
@@ -486,6 +515,29 @@
     </footer>
 
     <script>
+        const mobileNavbar = document.querySelector('.navbar');
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelectorAll('.nav-links a');
+
+        function closeMobileMenu() {
+            if (!mobileNavbar || !menuToggle) return;
+            mobileNavbar.classList.remove('menu-open');
+            menuToggle.setAttribute('aria-expanded', 'false');
+            menuToggle.setAttribute('aria-label', 'Abrir menú de navegación');
+        }
+
+        menuToggle?.addEventListener('click', () => {
+            const isOpen = mobileNavbar.classList.toggle('menu-open');
+            menuToggle.setAttribute('aria-expanded', String(isOpen));
+            menuToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación');
+        });
+
+        navLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) closeMobileMenu();
+        });
+
 // Gallery data - All images from Muestras folder (00-46)
         const galleryImages = [
             { src: './Muestras/00.webp', alt: 'Diseño 0', title: 'Diseño 0' },
@@ -635,9 +687,9 @@
         }
 
         // Navbar scroll effect
-        const navbar = document.getElementById('navbar');
+        const scrollNavbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
-            navbar.classList.toggle('scrolled', window.scrollY > 20);
+            scrollNavbar.classList.toggle('scrolled', window.scrollY > 20);
         });
 
         // Intersection Observer for reveal animations
@@ -666,7 +718,7 @@
 
     // Active link on scroll
     const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.navbar .nav-links a');
+    const activeNavLinks = document.querySelectorAll('.navbar .nav-links a');
     function setActiveLink() {
         let scrollPos = window.pageYOffset || document.documentElement.scrollTop;
         sections.forEach(section => {
@@ -674,7 +726,7 @@
             const sectionBottom = sectionTop + section.offsetHeight;
             const id = section.getAttribute('id');
             if (scrollPos >= sectionTop && scrollPos < sectionBottom) {
-                navLinks.forEach(link => {
+                activeNavLinks.forEach(link => {
                     link.classList.remove('active');
                     if (link.getAttribute('href') === `#${id}`) {
                         link.classList.add('active');
