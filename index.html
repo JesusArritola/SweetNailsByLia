@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sweet Nails by Lia</title>
-    <link rel="icon" type="image/png" sizes="48x48" href="./favicon/favicon-48x48.png">
-    <link rel="shortcut icon" href="./favicon/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./favicon/favicon-192x192.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon/favicon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="./favicon/favicon-192x192.png">
     <style>
         :root {
             --bg-color: #f5e6e0;
@@ -171,7 +172,20 @@
         }
         .gallery-item img {
             width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: opacity 0.3s ease, transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .gallery-item.is-loading::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, var(--border-color) 25%, #f7eeea 50%, var(--border-color) 75%);
+            background-size: 200% 100%;
+            animation: gallery-skeleton 1.4s infinite;
+        }
+        .gallery-item.is-loading img { opacity: 0; }
+        @keyframes gallery-skeleton { to { background-position: -200% 0; } }
+        @media (prefers-reduced-motion: reduce) {
+            .gallery-item.is-loading::before { animation: none; }
         }
         .gallery-item:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
         .gallery-item:hover img { transform: scale(1.05); }
@@ -364,7 +378,7 @@
             </div>
             <div class="hero-image reveal reveal-delay-2">
                 <!-- Usando la primera imagen del modelo -->
-                <img src="./modelo/00.jpg" alt="Sweet Nails by Lia - Estudio de uñas">
+                <img src="./modelo/00.jpg" alt="Sweet Nails by Lia - Estudio de uñas" fetchpriority="high" decoding="async">
             </div>
         </div>
     </section>
@@ -535,12 +549,15 @@
             for (let i = start; i < end && i < galleryImages.length; i++) {
                 const img = galleryImages[i];
                 const item = document.createElement('div');
-                item.className = 'gallery-item reveal';
+                item.className = 'gallery-item reveal is-loading';
                 item.style.transitionDelay = `${i * 0.08}s`;
                 item.innerHTML = `
-                    <img src="${img.src}" alt="${img.alt}" loading="lazy">
+                    <img src="${img.src}" alt="${img.alt}" loading="lazy" decoding="async">
                     <div class="gallery-overlay"><span>${img.title}</span></div>
                 `;
+                const galleryImage = item.querySelector('img');
+                galleryImage.addEventListener('load', () => item.classList.remove('is-loading'), { once: true });
+                galleryImage.addEventListener('error', () => item.classList.remove('is-loading'), { once: true });
                 item.addEventListener('click', () => openLightbox(i));
                 galleryGrid.appendChild(item);
                 // trigger reveal animation
